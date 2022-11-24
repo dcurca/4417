@@ -1,0 +1,53 @@
+part 1:
+**please note in order for this program to work you must place the input files within the inputDirectory, if txt files are placed within another directory this program will not work 
+python mapper.py | sort | python reducer.py
+
+input: list of files that are not py files in local directory "inputDirectory"
+output: ((term, document_name) count) for each word within each document inputed from the local directory   
+
+part 2:
+**please note for part2,part3 and part4 these programs will not work unless you create a "Documents" directory where the input files will be placed, this functionality was created due to the forumn post stating documents should be located within a "Documents" directory
+podman pull docker.io/westernscience/hadoop
+podman run -it -v /home/dcurca:/home/dcurca westernscience/hadoop /etc/bootstrap.sh -bash
+cd home/dcurca/inputDirectory
+$HADOOP_HOME/bin/hdfs dfs -mkdir Documents
+$HADOOP_HOME/bin/hdfs dfs -copyFromLocal Documents .
+$HADOOP_HOME/bin/hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-3.3.0.jar -files mapper.py,reducer.py -mapper mapper.py -reducer reducer.py -input Documents/* -output part2
+$HADOOP_HOME/bin/hdfs dfs -cat part2/*
+
+input: list of files that are found in the Documents directory from stdin 
+output: ((word1, word2), filename, count) where word1 and word2 combined create a sliding pair bigram 
+
+part 3:
+
+$HADOOP_HOME/bin/hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-3.3.0.jar -files mapper1.py,reducer1.py -mapper mapper1.py -reducer reducer1.py -input Documents/* -output output
+$HADOOP_HOME/bin/hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-3.3.0.jar -files mapper2.py,reducer2.py -mapper mapper2.py -reducer reducer2.py -input output -output part3
+
+input: 
+input for mapper1.py is a list of files that are found in the Documents directory from stdin within inputDirectory
+input for mapper2.py is an output file from reducer1.py consisting of ((word1, word2), filename, count) where word1 and word2 combined create a sliding pair bigram
+output:
+output for reducer1.py is an output file consisting of ((word1, word2), filename, count) where word1 and word2 combined create a sliding pair bigram
+output for reducer2.py is an output file consisting of unique ((word1, word2), filename, count) where word1 and word2 combined create a unique sliding pair bigram
+
+part 4:
+python mapper1.py | sort | python reducer1.py > output
+cat output | python mapper2.py | sort | python reducer2.py > output2
+cat output2 | python mapper3.py | sort | python reducer3.py
+
+input: 
+input for mapper1.py is a list of test files from the directory "Documents" within inputDirectory
+input for mapper2.py is an output file from reducer1.py consisting of (word, document_name, term_count, total_number_of_documents, total_number_of_words_per_document) for each word
+input for mapper3.py is an output file from reducer2.py consisting of (word, document_name, term_count, total_number_of_documents, total_number_of_words_per_document, number_of_documents_word_exists_in) for each word
+output:
+output for reducer1.py is an output file consisting of (word, document_name, term_count, total_number_of_documents, total_number_of_words_per_document) for each word
+output for reducer2.py is an output file consisting of (word, document_name, term_count, total_number_of_documents, total_number_of_words_per_document, number_of_documents_word_exists_in) for each word
+output for reducer3.py is ((document_name, word), (tf, df, tf-idf)) for each word within each document inputed from Documents directory
+
+Given more time I would like to have applied this code to input/.txt files with multiple lines, 
+in case that functionality was needed another functionality I would have liked to do given more time 
+would be to use hadoop and mapreduce like in the real world with Big Data and equivalent data processing 
+as in the real world. Overall mapreduce was not difficult to implement. Given the experience learned through 
+this assignment a similar task would not be that difficult I would say. Data pre-processing may be a little 
+more involved and take more time given more data but implementing mapreduce would not be too much more 
+challening as it is similar in every scenario.  
